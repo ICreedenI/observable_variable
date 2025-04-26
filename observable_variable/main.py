@@ -1,5 +1,7 @@
 # -- coding: utf-8 - -
 
+from typing import Any
+
 
 class ObservableVariable_old:
     """Every instance of this class has the property ``value``. After every change of this property every callback in the property ``callbacks``
@@ -60,8 +62,9 @@ class ObservableVariable:
     """
 
     def __init__(self, value=None) -> None:
-        self._value = value
+        self._value: Any = value
         self.callbacks = []
+        self.active = True
 
     def bind(self, callback, send_value: bool = True, *args):
         """Sending value on change to callback function.
@@ -85,23 +88,24 @@ class ObservableVariable:
         self.callbacks = []
 
     @property
-    def value(self):
+    def value(self) -> Any:
         return self._value
 
     @value.setter
     def value(self, value):
         self._value = value
-        for c, send_value, *args in self.callbacks:
-            if send_value:
-                if len(args) != 0:
-                    c(value, *args)
+        if self.active:
+            for c, send_value, *args in self.callbacks:
+                if send_value:
+                    if len(args) != 0:
+                        c(value, *args)
+                    else:
+                        c(value)
                 else:
-                    c(value)
-            else:
-                if len(args) != 0:
-                    c(*args)
-                else:
-                    c()
+                    if len(args) != 0:
+                        c(*args)
+                    else:
+                        c()
 
 
 if __name__ == "__main__":
